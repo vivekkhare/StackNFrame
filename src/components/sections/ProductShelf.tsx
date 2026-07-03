@@ -3,9 +3,18 @@ import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/motion/Reveal";
 import { TextReveal } from "@/components/motion/TextReveal";
 import { ProductTile } from "@/components/ui/ProductTile";
+import type { TileTint } from "@/components/ui/ProductTile";
 import { featuredProducts, products } from "@/content/products";
 
-const SPANS: (2 | 3)[] = [3, 3, 2, 2, 2, 2];
+/* bento: one large feature cell, two tinted cells, the rest glass */
+const CELLS: { span: string; featured?: boolean; tint?: TileTint }[] = [
+  { span: "md:col-span-3 md:row-span-2", featured: true, tint: "gold" },
+  { span: "md:col-span-3" },
+  { span: "md:col-span-3", tint: "blue" },
+  { span: "md:col-span-2" },
+  { span: "md:col-span-2" },
+  { span: "md:col-span-2" },
+];
 
 export function ProductShelf() {
   return (
@@ -22,12 +31,12 @@ export function ProductShelf() {
         </Reveal>
         <div className="mt-12 grid gap-3.5 md:grid-cols-6">
           {featuredProducts.map((product, i) => (
-            <Reveal
-              key={product.slug}
-              index={2 + i}
-              className={SPANS[i] === 3 ? "md:col-span-3" : "md:col-span-2"}
-            >
-              <ProductTile product={product} />
+            <Reveal key={product.slug} index={2 + i} className={CELLS[i].span}>
+              <ProductTile
+                product={product}
+                featured={CELLS[i].featured}
+                tint={CELLS[i].tint}
+              />
             </Reveal>
           ))}
         </div>
