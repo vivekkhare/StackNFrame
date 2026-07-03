@@ -1,8 +1,13 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
-html {
-  scroll-behavior: smooth;
+/* Lenis drives scroll physics; native smooth-behavior would fight it. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
 body {
@@ -68,9 +73,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   .cursor-blink {
     animation: none;
   }

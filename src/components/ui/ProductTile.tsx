@@ -1,20 +1,45 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
 import type { Product } from "@/content/products";
 
-/** Interactive glass tile. Hover: 2px lift + azure hairline left edge. */
+/**
+ * Interactive glass tile with a cursor-tracking spotlight: a soft radial
+ * highlight follows the pointer across the surface and a matching sheen
+ * lights the border. CSS vars are written straight to the node (no React
+ * state) so it never re-renders while tracking.
+ */
 export function ProductTile({ product }: { product: Product }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+
   return (
     <Link
+      ref={ref}
       href={`/contact?product=${product.slug}`}
-      className="group relative flex h-full min-h-[168px] flex-col justify-end gap-1.5 rounded-tile border border-hairline bg-panel px-6 pb-5 pt-6 transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-[inset_2px_0_0_var(--accent)] active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+      onPointerMove={(e) => {
+        if (e.pointerType !== "mouse" || !ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        ref.current.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+        ref.current.style.setProperty("--my", `${e.clientY - rect.top}px`);
+      }}
+      className="group relative flex h-full min-h-[168px] flex-col justify-end gap-1.5 overflow-hidden rounded-tile border border-hairline bg-panel px-6 pb-5 pt-6 transition-[transform,border-color] duration-150 ease-out hover:-translate-y-0.5 hover:border-accent/40 active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
     >
-      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-fg-muted">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 70%)",
+        }}
+      />
+      <span className="relative font-mono text-[10px] uppercase tracking-[0.16em] text-fg-muted">
         {product.categoryLabel}
       </span>
-      <span className="font-display text-[22px] font-bold tracking-[-0.01em] text-fg">
+      <span className="relative font-display text-[22px] font-bold tracking-[-0.01em] text-fg">
         {product.name}
       </span>
-      <span className="text-[13.5px] leading-normal text-fg-muted">
+      <span className="relative text-[13.5px] leading-normal text-fg-muted">
         {product.description}
       </span>
       {product.whiteLabel && (

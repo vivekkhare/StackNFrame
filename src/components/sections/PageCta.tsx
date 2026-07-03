@@ -1,6 +1,7 @@
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 export function PageCta({ line }: { line: string }) {
   return (
@@ -12,7 +13,9 @@ export function PageCta({ line }: { line: string }) {
           </p>
         </Reveal>
         <Reveal index={1}>
-          <Button href="/contact">Start a project</Button>
+          <Magnetic>
+            <Button href="/contact">Start a project</Button>
+          </Magnetic>
         </Reveal>
       </div>
     </Container>

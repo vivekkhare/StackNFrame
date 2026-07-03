@@ -1,31 +1,32 @@
 /*
- * Blueprint Azure — design tokens for stacknframe.com
+ * Tea & Teal — design tokens for stacknframe.com
+ * Dark teal canvas · tea-gold accent · taupe/greige neutrals
  *
  * Contrast contract: --fg on --bg and --accent-fg on --accent must stay >= 4.5:1;
  * --fg-muted on --bg must stay >= 4.5:1 for body-size text.
  */
 :root {
   /* surfaces */
-  --bg: #0c1d33;
-  --surface: #12283f;
-  --panel: rgba(140, 190, 255, 0.045);
-  --border: #24466b;
-  --hairline: rgba(140, 190, 255, 0.14);
+  --bg: #0b1f1c;
+  --surface: #112b27;
+  --panel: rgba(214, 205, 189, 0.04);
+  --border: #274741;
+  --hairline: rgba(214, 205, 189, 0.13);
 
   /* text */
-  --fg: #eaf2fb;
-  --fg-muted: #7fa0c4;
+  --fg: #eae5d9;
+  --fg-muted: #a9a294;
 
   /* accent */
-  --accent: #5ca9ff;
-  --accent-fg: #071526;
-  --glow: rgba(92, 169, 255, 0.1);
+  --accent: #d2b285;
+  --accent-fg: #0b1f1c;
+  --glow: rgba(210, 178, 133, 0.12);
 
   /* status (real semantic state only) */
-  --ok: #4ade80;
+  --ok: #5fd4a1;
 
   /* texture */
-  --grid-line: rgba(36, 70, 107, 0.42);
+  --grid-line: rgba(39, 71, 65, 0.5);
 
   /* shape */
   --radius-control: 8px;

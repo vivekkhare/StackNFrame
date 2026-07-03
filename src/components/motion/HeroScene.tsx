@@ -5,8 +5,8 @@ import { useReducedMotion } from "motion/react";
 import * as THREE from "three";
 import { HeroFallback } from "./HeroFallback";
 
-const AZURE = 0x5ca9ff;
-const INK = 0xeaf2fb;
+const TEA = 0xd2b285;
+const GREIGE = 0xeae5d9;
 
 function supportsWebGL(): boolean {
   try {
@@ -52,11 +52,11 @@ export default function HeroScene() {
     const group = new THREE.Group();
     scene.add(group);
 
-    // the frame: azure wireframe cube
+    // the frame: tea-gold wireframe cube
     const cage = new THREE.LineSegments(
       new THREE.EdgesGeometry(new THREE.BoxGeometry(2.6, 2.6, 2.6)),
       new THREE.LineBasicMaterial({
-        color: AZURE,
+        color: TEA,
         transparent: true,
         opacity: 0.45,
       }),
@@ -71,7 +71,7 @@ export default function HeroScene() {
       const slab = new THREE.Mesh(
         slabGeo,
         new THREE.MeshBasicMaterial({
-          color: top ? AZURE : INK,
+          color: top ? TEA : GREIGE,
           transparent: true,
           opacity: top ? 0.22 : 0.07,
         }),
@@ -81,7 +81,7 @@ export default function HeroScene() {
         new THREE.LineSegments(
           new THREE.EdgesGeometry(slabGeo),
           new THREE.LineBasicMaterial({
-            color: top ? AZURE : INK,
+            color: top ? TEA : GREIGE,
             transparent: true,
             opacity: top ? 0.9 : 0.35,
           }),
@@ -95,13 +95,25 @@ export default function HeroScene() {
     const scan = new THREE.Mesh(
       new THREE.PlaneGeometry(2.4, 0.015),
       new THREE.MeshBasicMaterial({
-        color: AZURE,
+        color: TEA,
         transparent: true,
         opacity: 0.85,
         side: THREE.DoubleSide,
       }),
     );
     scene.add(scan);
+
+    // pointer parallax: the whole structure leans gently toward the cursor
+    let targetTiltX = 0;
+    let targetTiltZ = 0;
+    let tiltX = 0;
+    let tiltZ = 0;
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      targetTiltX = (e.clientY / window.innerHeight - 0.5) * 0.22;
+      targetTiltZ = (e.clientX / window.innerWidth - 0.5) * 0.22;
+    };
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     let raf = 0;
     let running = false;
@@ -112,6 +124,11 @@ export default function HeroScene() {
       const t = (performance.now() - start) / 1000;
 
       group.rotation.y = t * 0.24;
+      // ease the tilt toward the pointer target (spring-ish lerp)
+      tiltX += (targetTiltX - tiltX) * 0.04;
+      tiltZ += (targetTiltZ - tiltZ) * 0.04;
+      group.rotation.x = tiltX;
+      group.rotation.z = tiltZ;
       slabs.forEach((slab, i) => {
         slab.position.y = i * 0.62 - 0.93 + Math.sin(t * 0.9 + i) * 0.05;
       });
@@ -160,6 +177,7 @@ export default function HeroScene() {
       cancelAnimationFrame(raf);
       visibility.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pointermove", onPointerMove);
       ro.disconnect();
       renderer.dispose();
       slabGeo.dispose();

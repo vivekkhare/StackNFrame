@@ -1,6 +1,7 @@
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 export function FinalCta() {
   return (
@@ -33,9 +34,9 @@ export function FinalCta() {
           </h2>
         </Reveal>
         <Reveal index={1}>
-          <Button href="/contact" className="mt-10">
-            Start a project
-          </Button>
+          <Magnetic className="mt-10">
+            <Button href="/contact">Start a project</Button>
+          </Magnetic>
         </Reveal>
       </Container>
     </section>

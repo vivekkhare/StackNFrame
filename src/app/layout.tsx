@@ -5,6 +5,7 @@ import { site } from "@/config/site";
 import { organizationJsonLd } from "@/lib/metadata";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        <SmoothScroll />
         <div className="bg-grid-layer" aria-hidden="true" />
         <div className="bg-vignette-layer" aria-hidden="true" />
         <div className="bg-grain-layer" aria-hidden="true" />
