@@ -67,7 +67,7 @@ export function ProductTile({ product }: { product: Product }) {
               "radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 70%)",
           }}
         />
-        <span className="relative font-mono text-[10px] uppercase tracking-[0.16em] text-fg-muted">
+        <span className="relative font-mono text-[11px] uppercase tracking-[0.16em] text-fg-muted">
           {product.categoryLabel}
         </span>
         <span className="relative font-display text-[22px] font-bold tracking-[-0.01em] text-fg">

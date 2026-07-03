@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "motion/react";
 import { products } from "@/content/products";
 import { company } from "@/config/company";
 
@@ -9,6 +14,7 @@ type Mode = "build" | "product";
 type Status = "idle" | "submitting" | "success" | "error";
 
 const W3F_KEY = process.env.NEXT_PUBLIC_W3F_KEY;
+const EASE = [0.23, 1, 0.32, 1] as const;
 
 const PROJECT_TYPES = [
   "Software product",
@@ -33,23 +39,32 @@ const INTERESTS = [
 ];
 
 const inputCls =
-  "w-full rounded-control border border-border bg-surface px-4 py-3 text-[15px] text-fg " +
+  "w-full rounded-[10px] border border-border bg-surface px-4 py-3 text-[15px] text-fg " +
   "placeholder:text-fg-muted/60 transition-[border-color] duration-150 " +
   "focus:border-accent focus:outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1";
 
-const labelCls = "mb-2 block text-[13.5px] font-medium text-fg";
-
 function Field({
   label,
+  error,
+  errorId,
   children,
 }: {
   label: string;
+  error?: string;
+  errorId?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <span className={labelCls}>{label}</span>
+      <span className="mb-2 block text-[13.5px] font-medium text-fg">
+        {label}
+      </span>
       {children}
+      {error && (
+        <p id={errorId} className="mt-1.5 text-[13px] text-red-400">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -61,11 +76,35 @@ export function ContactForm() {
 
   const [mode, setMode] = useState<Mode>(preselected ? "product" : "build");
   const [status, setStatus] = useState<Status>("idle");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
+  const reduce = useReducedMotion();
+
+  function validate(data: FormData): Record<string, string> {
+    const next: Record<string, string> = {};
+    if (!String(data.get("name") || "").trim())
+      next.name = "Add your name so we know who to reply to.";
+    const email = String(data.get("email") || "").trim();
+    if (!email) next.email = "Add an email so we can reply.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      next.email = "That email does not look complete. Check for a typo.";
+    if (mode === "build" && !String(data.get("message") || "").trim())
+      next.message = "A sentence or two about the project helps us reply usefully.";
+    return next;
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
+
+    const fieldErrors = validate(data);
+    setErrors(fieldErrors);
+    if (Object.keys(fieldErrors).length > 0) {
+      const first = Object.keys(fieldErrors)[0];
+      (form.elements.namedItem(first) as HTMLElement | null)?.focus();
+      return;
+    }
 
     const subject =
       mode === "product"
@@ -110,10 +149,13 @@ export function ContactForm() {
 
   if (status === "success") {
     return (
-      <div
+      <motion.div
         role="status"
         aria-live="polite"
         className="rounded-tile border border-hairline bg-panel px-8 py-10"
+        initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: EASE }}
       >
         <p className="font-display text-2xl font-bold">Received.</p>
         <p className="mt-3 max-w-[46ch] text-fg-muted">
@@ -127,12 +169,13 @@ export function ContactForm() {
         >
           Send another
         </button>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <div>
+      {/* sliding-pill mode switch */}
       <div
         role="tablist"
         aria-label="Request type"
@@ -149,108 +192,143 @@ export function ContactForm() {
             role="tab"
             type="button"
             aria-selected={mode === value}
-            onClick={() => setMode(value)}
-            className={`rounded-[6px] px-5 py-2 font-display text-[13.5px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-accent ${
-              mode === value
-                ? "bg-accent text-accent-fg"
-                : "text-fg-muted hover:text-fg"
+            onClick={() => {
+              setMode(value);
+              setErrors({});
+            }}
+            className={`relative rounded-full px-5 py-2 font-display text-[13.5px] font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-accent ${
+              mode === value ? "text-pill-fg" : "text-fg-muted hover:text-fg"
             }`}
           >
+            {mode === value && (
+              <motion.span
+                layoutId="mode-pill"
+                className="absolute inset-0 -z-10 rounded-full bg-pill"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              />
+            )}
             {label}
           </button>
         ))}
       </div>
 
-      <form onSubmit={onSubmit} className="grid max-w-2xl gap-6">
+      <form
+        ref={formRef}
+        onSubmit={onSubmit}
+        noValidate
+        className="grid max-w-2xl gap-6"
+      >
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Your name">
+          <Field label="Your name" error={errors.name} errorId="err-name">
             <input
               name="name"
-              required
               autoComplete="name"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "err-name" : undefined}
               className={inputCls}
             />
           </Field>
-          <Field label="Email">
+          <Field label="Email" error={errors.email} errorId="err-email">
             <input
               name="email"
               type="email"
-              required
               autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "err-email" : undefined}
               className={inputCls}
             />
           </Field>
         </div>
 
-        {mode === "build" ? (
-          <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="Project type">
-              <select name="projectType" required className={inputCls}>
-                {PROJECT_TYPES.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Budget range">
-              <select name="budget" required className={inputCls}>
-                {BUDGETS.map((b) => (
-                  <option key={b}>{b}</option>
-                ))}
-              </select>
-            </Field>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <Field label="Company (optional)">
-                <input
-                  name="company"
-                  autoComplete="organization"
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="Product">
-                <select
-                  name="product"
-                  required
-                  defaultValue={preselected?.name}
-                  className={inputCls}
-                >
-                  {products.map((p) => (
-                    <option key={p.slug}>{p.name}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <Field label="Interested in">
-              <select name="interest" required className={inputCls}>
-                {INTERESTS.map((i) => (
-                  <option key={i}>{i}</option>
-                ))}
-              </select>
-            </Field>
-          </>
-        )}
-
-        <Field
-          label={
-            mode === "build"
-              ? "Tell us about the project"
-              : "Anything we should know?"
-          }
-        >
-          <textarea
-            name="message"
-            rows={5}
-            required={mode === "build"}
-            className={inputCls}
-            placeholder={
-              mode === "build"
-                ? "What are you building, for whom, and by when?"
-                : "Volumes, timelines, branding needs..."
+        {/* mode-specific fields crossfade; a light blur masks the swap */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mode}
+            className="grid gap-6"
+            initial={
+              reduce ? { opacity: 0 } : { opacity: 0, filter: "blur(3px)" }
             }
-          />
-        </Field>
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            exit={{
+              opacity: 0,
+              filter: reduce ? "none" : "blur(3px)",
+              transition: { duration: 0.1, ease: EASE },
+            }}
+            transition={{ duration: 0.16, ease: EASE }}
+          >
+            {mode === "build" ? (
+              <div className="grid gap-6 sm:grid-cols-2">
+                <Field label="Project type">
+                  <select name="projectType" className={inputCls}>
+                    {PROJECT_TYPES.map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Budget range">
+                  <select name="budget" className={inputCls}>
+                    {BUDGETS.map((b) => (
+                      <option key={b}>{b}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <Field label="Company (optional)">
+                    <input
+                      name="company"
+                      autoComplete="organization"
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field label="Product">
+                    <select
+                      name="product"
+                      defaultValue={preselected?.name}
+                      className={inputCls}
+                    >
+                      {products.map((p) => (
+                        <option key={p.slug}>{p.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+                <Field label="Interested in">
+                  <select name="interest" className={inputCls}>
+                    {INTERESTS.map((i) => (
+                      <option key={i}>{i}</option>
+                    ))}
+                  </select>
+                </Field>
+              </>
+            )}
+
+            <Field
+              label={
+                mode === "build"
+                  ? "Tell us about the project"
+                  : "Anything we should know?"
+              }
+              error={errors.message}
+              errorId="err-message"
+            >
+              <textarea
+                name="message"
+                rows={5}
+                aria-invalid={!!errors.message}
+                aria-describedby={errors.message ? "err-message" : undefined}
+                className={inputCls}
+                placeholder={
+                  mode === "build"
+                    ? "What are you building, for whom, and by when?"
+                    : "Volumes, timelines, branding needs..."
+                }
+              />
+            </Field>
+          </motion.div>
+        </AnimatePresence>
 
         {status === "error" && (
           <p role="alert" className="text-[14px] text-red-400">
@@ -262,7 +340,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="justify-self-start rounded-control bg-accent px-7 py-3 font-display text-[15px] font-medium text-accent-fg transition-[transform,filter] duration-150 ease-out hover:brightness-110 active:scale-[0.97] disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+          className="justify-self-start rounded-control bg-pill px-7 py-3 font-display text-[15px] font-medium text-pill-fg transition-transform duration-150 ease-out hover:brightness-105 active:scale-[0.97] disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
         >
           {status === "submitting"
             ? "Sending..."

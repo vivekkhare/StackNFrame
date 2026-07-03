@@ -24,7 +24,7 @@ export function FinalCta() {
           <TextReveal
             segments={[
               { text: "Tell us what to" },
-              { text: "build.", className: "text-gradient-gold" },
+              { text: "build.", className: "text-gold-hi" },
             ]}
           />
         </h2>

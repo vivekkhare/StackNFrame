@@ -108,7 +108,6 @@ export function HeroContent() {
         <HeroSceneLazy />
         <Annotation label="GRID AXIS A4" className="right-2 top-[18%]" />
         <Annotation label="FLOOR 18" className="right-0 top-[46%]" />
-        <Annotation label="FLOOR 17" className="right-4 top-[64%]" />
       </motion.div>
 
       {/* center column */}

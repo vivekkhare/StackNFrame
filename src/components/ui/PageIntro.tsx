@@ -21,7 +21,7 @@ export function PageIntro({
             segments={[
               { text: title },
               ...(accent
-                ? [{ text: accent, className: "text-gradient-gold" }]
+                ? [{ text: accent, className: "text-gold-hi" }]
                 : []),
             ]}
           />

@@ -3,14 +3,20 @@ import Link from "next/link";
 type Variant = "solid" | "ghost";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-display font-medium " +
-  "rounded-control transition-[transform,background-color,border-color,filter,box-shadow] duration-150 ease-out " +
+  "relative isolate inline-flex items-center justify-center gap-2 font-display font-medium " +
+  "rounded-control transition-[transform,background-color,border-color] duration-150 ease-out " +
   "active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2";
 
-/* solid = the reference's luminous light pill; ghost = hairline outlined pill */
+/*
+ * solid = luminous light pill. The glow lives on a pseudo-element and only
+ * its opacity animates, so hovers never trigger paint on the button itself.
+ */
 const variants: Record<Variant, string> = {
   solid:
-    "bg-pill text-pill-fg shadow-[0_0_24px_-4px_rgba(244,246,250,0.45)] hover:shadow-[0_0_32px_-2px_rgba(244,246,250,0.55)] hover:brightness-105",
+    "bg-pill text-pill-fg " +
+    "after:absolute after:inset-0 after:-z-10 after:rounded-control " +
+    "after:shadow-[0_0_32px_-2px_rgba(244,246,250,0.55)] after:opacity-60 " +
+    "after:transition-opacity after:duration-200 hover:after:opacity-100",
   ghost: "border border-border text-fg hover:border-fg-muted",
 };
 

@@ -16,7 +16,7 @@ export default function ProductsPage() {
       <PageIntro
         title="Software we"
         accent="publish."
-        lede="Every product here is built, run and maintained by us. Most are available white-label: your brand on a proven build. Enquire from any tile."
+        lede="Every product here is built, run and maintained by us. Most are available white-label: your brand on a proven build. Enquire from any product."
       />
       <ProductGrid />
       <PageCta line="Want one of these as your own?" />

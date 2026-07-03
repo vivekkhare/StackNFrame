@@ -18,7 +18,7 @@ export function Footer() {
         </nav>
         <div className="text-[13px] text-fg-muted">
           <p>
-            A precision-engineering brand / (c) {year} {company.legalName},
+            A precision-engineering brand / © {year} {company.legalName},
             Aotearoa New Zealand
           </p>
           {(company.nzbn || company.companyNumber) && (
