@@ -25,8 +25,8 @@ export function ProductShelf() {
         </h2>
         <Reveal index={1} as="p">
           <span className="mt-4 block max-w-[52ch] text-[17px] text-fg-muted">
-            {products.length} products across AI, commerce, operations and
-            consumer. Licensed under your brand or ours.
+            We do not show mockups. All {products.length} of these run in
+            production, built and operated by us in New Zealand.
           </span>
         </Reveal>
         <div className="mt-12 grid gap-3.5 md:grid-cols-6">
@@ -41,8 +41,7 @@ export function ProductShelf() {
           ))}
         </div>
         <Reveal index={8}>
-          <div className="mt-7 flex flex-wrap items-baseline justify-between gap-4 text-[14px] text-fg-muted">
-            <span>White-label options available.</span>
+          <div className="mt-7 flex justify-end text-[14px]">
             <Link
               href="/products"
               className="border-b border-accent pb-0.5 font-display text-fg transition-colors duration-150 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"

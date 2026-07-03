@@ -33,6 +33,12 @@ export function FinalCta() {
             <Button href="/contact">Start a project</Button>
           </Magnetic>
         </Reveal>
+        <Reveal index={2} as="p">
+          <span className="mt-6 block text-[14.5px] text-fg-muted">
+            We reply within two working days, with an honest read on scope and
+            cost.
+          </span>
+        </Reveal>
       </Container>
     </section>
   );

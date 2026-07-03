@@ -109,7 +109,7 @@ export function ProductTile({
           {product.description}
         </span>
         {product.whiteLabel && (
-          <span className="absolute right-5 top-5 rounded-full border border-hairline px-2.5 py-0.5 text-[10px] uppercase tracking-[0.1em] text-fg-muted">
+          <span className="absolute right-5 top-5 rounded-full border border-hairline px-2.5 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-fg-muted">
             White-label
           </span>
         )}

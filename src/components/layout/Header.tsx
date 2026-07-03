@@ -26,7 +26,7 @@ export function Header() {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 border-b border-hairline bg-bg/80 backdrop-blur-xl"
+      className="sticky top-0 z-[var(--z-nav)] border-b border-hairline bg-bg/80 backdrop-blur-xl"
       animate={reduce ? undefined : { y: hidden ? "-100%" : "0%" }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
     >

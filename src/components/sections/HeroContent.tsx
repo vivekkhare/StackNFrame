@@ -121,16 +121,16 @@ export function HeroContent() {
           </p>
         </FadeIn>
         <h1 className="mt-7 font-display text-[clamp(40px,6.2vw,84px)] font-bold uppercase leading-[1.04] tracking-[-0.015em]">
-          <MaskReveal delay={0.15}>Software publishing</MaskReveal>
+          <MaskReveal delay={0.15}>Software that ships.</MaskReveal>
           <MaskReveal delay={0.27}>
-            for <span className="text-gradient-gold">spatial innovation</span>
+            <span className="text-gradient-gold">Spaces that compute.</span>
           </MaskReveal>
         </h1>
         <FadeIn delay={0.55}>
           <p className="mt-6 max-w-[52ch] text-balance text-lg leading-relaxed text-fg-muted">
-            Stack &amp; Frame bridges code and architectural engineering:
-            software products, AI systems and precision tools for designing
-            real spaces.
+            A New Zealand software publisher: products, AI systems and
+            white-label platforms, with the same engineering applied to
+            architecture and interiors.
           </p>
         </FadeIn>
         <FadeIn delay={0.68} className="mt-9 flex flex-wrap justify-center gap-4">

@@ -1,9 +1,9 @@
 export const site = {
   url: "https://stacknframe.com",
   name: "Stack & Frame",
-  title: "Stack & Frame | Software products, AI systems and spatial design",
+  title: "Stack & Frame | New Zealand software publisher",
   description:
-    "New Zealand software publisher building in two planes: software products, AI systems and white-label platforms on one side, computationally designed spaces on the other.",
+    "Stack & Frame is a New Zealand software publisher: custom software development, AI systems and white-label platforms, plus computationally designed architecture and interiors.",
   nav: [
     { label: "Stack", href: "/stack" },
     { label: "Frame", href: "/frame" },

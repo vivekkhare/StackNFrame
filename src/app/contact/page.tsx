@@ -3,6 +3,7 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { Container } from "@/components/ui/Container";
 import { ContactForm } from "@/components/forms/ContactForm";
+import { Faq } from "@/components/sections/Faq";
 import { company } from "@/config/company";
 
 export const metadata = buildPageMetadata({
@@ -53,6 +54,7 @@ export default function ContactPage() {
           </aside>
         </div>
       </Container>
+      <Faq />
     </>
   );
 }

@@ -58,9 +58,14 @@ export default function RootLayout({
             __html: JSON.stringify(organizationJsonLd()),
           }}
         />
+        <noscript>
+          {/* Reveal animations set inline opacity/transform during SSR;
+              without JS they would never resolve, so force content visible. */}
+          <style>{`main *{opacity:1!important;transform:none!important;filter:none!important}`}</style>
+        </noscript>
         <a
           href="#main"
-          className="sr-only z-[100] rounded-control bg-accent px-4 py-2 font-display text-accent-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          className="sr-only z-[var(--z-skip)] rounded-control bg-accent px-4 py-2 font-display text-accent-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
         >
           Skip to content
         </a>
@@ -71,7 +76,7 @@ export default function RootLayout({
         <div className="bg-vignette-layer" aria-hidden="true" />
         <div className="bg-grain-layer" aria-hidden="true" />
         <Header />
-        <main id="main" className="relative z-10 flex-grow">
+        <main id="main" className="relative z-[var(--z-content)] flex-grow">
           {children}
         </main>
         <Footer />
