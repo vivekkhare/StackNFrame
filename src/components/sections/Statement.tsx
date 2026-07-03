@@ -48,7 +48,7 @@ export function Statement() {
             style={style(x3)}
             className="mt-4 text-[clamp(30px,4.2vw,54px)] md:ml-[5vw]"
           >
-            Owned <span className="text-accent">end to end.</span>
+            Owned <span className="text-gradient-gold">end to end.</span>
           </motion.p>
         </div>
       </Container>

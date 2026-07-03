@@ -66,6 +66,8 @@ export default function RootLayout({
         </a>
         <SmoothScroll />
         <div className="bg-grid-layer" aria-hidden="true" />
+        <div className="bg-stars-layer" aria-hidden="true" />
+        <div className="bg-stars-layer-2" aria-hidden="true" />
         <div className="bg-vignette-layer" aria-hidden="true" />
         <div className="bg-grain-layer" aria-hidden="true" />
         <Header />

@@ -5,8 +5,8 @@ import { useReducedMotion } from "motion/react";
 import * as THREE from "three";
 import { HeroFallback } from "./HeroFallback";
 
-const TEA = 0xd2b285;
-const GREIGE = 0xeae5d9;
+const BLUE = 0x7fb0f2;
+const GOLD = 0xe8d5b0;
 
 function supportsWebGL(): boolean {
   try {
@@ -20,12 +20,102 @@ function supportsWebGL(): boolean {
   }
 }
 
+/** Wireframe tower: floor plates + columns + glowing corner nodes, per the reference art. */
+function buildTower(group: THREE.Group) {
+  const w = 1.5;
+  const d = 1.15;
+  const floors = [-1.15, -0.35, 0.45, 1.25];
+
+  const linePts: number[] = [];
+  const push = (
+    a: [number, number, number],
+    b: [number, number, number],
+  ) => linePts.push(...a, ...b);
+
+  // floor plate outlines
+  for (const y of floors) {
+    push([-w, y, -d], [w, y, -d]);
+    push([w, y, -d], [w, y, d]);
+    push([w, y, d], [-w, y, d]);
+    push([-w, y, d], [-w, y, -d]);
+    // cross beams
+    push([-w, y, 0], [w, y, 0]);
+  }
+  // corner + mid columns
+  const yBot = floors[0];
+  const yTop = floors[floors.length - 1];
+  for (const [cx, cz] of [
+    [-w, -d],
+    [w, -d],
+    [w, d],
+    [-w, d],
+    [0, -d],
+    [0, d],
+  ] as const) {
+    push([cx, yBot, cz], [cx, yTop, cz]);
+  }
+
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(linePts, 3),
+  );
+  const lines = new THREE.LineSegments(
+    lineGeo,
+    new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0.5 }),
+  );
+  group.add(lines);
+
+  // glowing nodes at structural intersections
+  const bluePts: number[] = [];
+  const goldPts: number[] = [];
+  floors.forEach((y, fi) => {
+    for (const [cx, cz] of [
+      [-w, -d],
+      [w, -d],
+      [w, d],
+      [-w, d],
+    ] as const) {
+      // warm the top floor's near corners (the reference's champagne glow)
+      if (fi === floors.length - 1 && cx > 0) goldPts.push(cx, y, cz);
+      else bluePts.push(cx, y, cz);
+    }
+  });
+
+  const mkPoints = (pts: number[], color: number, size: number) => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+    return new THREE.Points(
+      geo,
+      new THREE.PointsMaterial({
+        color,
+        size,
+        transparent: true,
+        opacity: 0.95,
+        sizeAttenuation: false,
+      }),
+    );
+  };
+  const blueNodes = mkPoints(bluePts, BLUE, 4);
+  const goldNodes = mkPoints(goldPts, GOLD, 6);
+  group.add(blueNodes, goldNodes);
+
+  // faint blueprint ground grid
+  const grid = new THREE.GridHelper(6, 12, BLUE, BLUE);
+  (grid.material as THREE.Material).transparent = true;
+  (grid.material as THREE.Material).opacity = 0.08;
+  grid.position.y = yBot - 0.02;
+  group.add(grid);
+
+  return { blueNodes, goldNodes };
+}
+
 export default function HeroScene() {
   const mountRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const [ready, setReady] = useState(false);
-  // This component is client-only (ssr:false), so probing WebGL in the lazy
-  // initializer is safe and avoids a setState-in-effect cascade.
+  // Client-only component (ssr:false): probing WebGL in the lazy initializer
+  // is safe and avoids a setState-in-effect cascade.
   const [webgl] = useState(() => supportsWebGL());
   const fallback = reduce || !webgl;
 
@@ -36,13 +126,13 @@ export default function HeroScene() {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      42,
+      40,
       mount.clientWidth / mount.clientHeight,
       0.1,
       100,
     );
-    camera.position.set(5, 4.4, 5);
-    camera.lookAt(0, 0.2, 0);
+    camera.position.set(5.2, 3.4, 5.2);
+    camera.lookAt(0, 0.1, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -51,67 +141,17 @@ export default function HeroScene() {
 
     const group = new THREE.Group();
     scene.add(group);
+    const { blueNodes, goldNodes } = buildTower(group);
 
-    // the frame: tea-gold wireframe cube
-    const cage = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(2.6, 2.6, 2.6)),
-      new THREE.LineBasicMaterial({
-        color: TEA,
-        transparent: true,
-        opacity: 0.45,
-      }),
-    );
-    group.add(cage);
-
-    // the stack: 4 translucent slabs with hairline edges
-    const slabGeo = new THREE.BoxGeometry(1.9, 0.06, 1.9);
-    const slabs: THREE.Mesh[] = [];
-    for (let i = 0; i < 4; i++) {
-      const top = i === 3;
-      const slab = new THREE.Mesh(
-        slabGeo,
-        new THREE.MeshBasicMaterial({
-          color: top ? TEA : GREIGE,
-          transparent: true,
-          opacity: top ? 0.22 : 0.07,
-        }),
-      );
-      slab.position.y = i * 0.62 - 0.93;
-      slab.add(
-        new THREE.LineSegments(
-          new THREE.EdgesGeometry(slabGeo),
-          new THREE.LineBasicMaterial({
-            color: top ? TEA : GREIGE,
-            transparent: true,
-            opacity: top ? 0.9 : 0.35,
-          }),
-        ),
-      );
-      slabs.push(slab);
-      group.add(slab);
-    }
-
-    // scan line: thin emissive plane sweeping the stack
-    const scan = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.4, 0.015),
-      new THREE.MeshBasicMaterial({
-        color: TEA,
-        transparent: true,
-        opacity: 0.85,
-        side: THREE.DoubleSide,
-      }),
-    );
-    scene.add(scan);
-
-    // pointer parallax: the whole structure leans gently toward the cursor
+    // pointer parallax: the structure leans gently toward the cursor
     let targetTiltX = 0;
     let targetTiltZ = 0;
     let tiltX = 0;
     let tiltZ = 0;
     const onPointerMove = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
-      targetTiltX = (e.clientY / window.innerHeight - 0.5) * 0.22;
-      targetTiltZ = (e.clientX / window.innerWidth - 0.5) * 0.22;
+      targetTiltX = (e.clientY / window.innerHeight - 0.5) * 0.16;
+      targetTiltZ = (e.clientX / window.innerWidth - 0.5) * 0.16;
     };
     window.addEventListener("pointermove", onPointerMove, { passive: true });
 
@@ -123,27 +163,22 @@ export default function HeroScene() {
       raf = requestAnimationFrame(animate);
       const t = (performance.now() - start) / 1000;
 
-      group.rotation.y = t * 0.24;
-      // ease the tilt toward the pointer target (spring-ish lerp)
+      group.rotation.y = t * 0.16;
       tiltX += (targetTiltX - tiltX) * 0.04;
       tiltZ += (targetTiltZ - tiltZ) * 0.04;
       group.rotation.x = tiltX;
       group.rotation.z = tiltZ;
-      slabs.forEach((slab, i) => {
-        slab.position.y = i * 0.62 - 0.93 + Math.sin(t * 0.9 + i) * 0.05;
-      });
 
-      const cycle = (t % 4.5) / 4.5;
-      scan.position.y = -1.3 + cycle * 2.9;
-      scan.lookAt(camera.position);
-      (scan.material as THREE.MeshBasicMaterial).opacity =
-        cycle < 0.06 || cycle > 0.92 ? 0 : 0.8;
+      // nodes breathe softly, offset from each other
+      (blueNodes.material as THREE.PointsMaterial).opacity =
+        0.65 + Math.sin(t * 1.6) * 0.3;
+      (goldNodes.material as THREE.PointsMaterial).opacity =
+        0.7 + Math.sin(t * 1.1 + 1.4) * 0.3;
 
       renderer.render(scene, camera);
     };
 
-    // Render only while the hero is actually visible; saves battery and
-    // keeps the main thread free once the user scrolls past.
+    // Render only while visible; saves battery and main-thread time.
     const setRunning = (next: boolean) => {
       if (next === running) return;
       running = next;
@@ -180,12 +215,14 @@ export default function HeroScene() {
       window.removeEventListener("pointermove", onPointerMove);
       ro.disconnect();
       renderer.dispose();
-      slabGeo.dispose();
       scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments) {
+        if (
+          obj instanceof THREE.Mesh ||
+          obj instanceof THREE.LineSegments ||
+          obj instanceof THREE.Points
+        ) {
           obj.geometry.dispose();
-          const mat = obj.material as THREE.Material;
-          mat.dispose();
+          (obj.material as THREE.Material).dispose();
         }
       });
       mount.removeChild(renderer.domElement);

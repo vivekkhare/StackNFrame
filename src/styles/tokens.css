@@ -1,36 +1,44 @@
 /*
- * Tea & Teal — design tokens for stacknframe.com
- * Dark teal canvas · tea-gold accent · taupe/greige neutrals
+ * Midnight Blueprint — design tokens for stacknframe.com
+ * Near-black navy canvas · blueprint-blue details · champagne-gold highlights
+ * Matched to the approved hero reference concept.
  *
- * Contrast contract: --fg on --bg and --accent-fg on --accent must stay >= 4.5:1;
+ * Contrast contract: --fg on --bg and --accent-fg on light pills must stay >= 4.5:1;
  * --fg-muted on --bg must stay >= 4.5:1 for body-size text.
  */
 :root {
   /* surfaces */
-  --bg: #0b1f1c;
-  --surface: #112b27;
-  --panel: rgba(214, 205, 189, 0.04);
-  --border: #274741;
-  --hairline: rgba(214, 205, 189, 0.13);
+  --bg: #060b16;
+  --surface: #0c1526;
+  --panel: rgba(140, 170, 255, 0.05);
+  --border: #1e2c47;
+  --hairline: rgba(160, 190, 255, 0.14);
 
   /* text */
-  --fg: #eae5d9;
-  --fg-muted: #a9a294;
+  --fg: #f2f5fa;
+  --fg-muted: #98a4b8;
 
-  /* accent */
-  --accent: #d2b285;
-  --accent-fg: #0b1f1c;
-  --glow: rgba(210, 178, 133, 0.12);
+  /* accents: cool blueprint blue for structure, champagne gold for warmth */
+  --accent: #7fb0f2;
+  --accent-fg: #071018;
+  --gold-hi: #f0dcb8;
+  --gold-lo: #c9a876;
+  --glow: rgba(111, 160, 235, 0.14);
+  --glow-warm: rgba(224, 197, 148, 0.12);
+
+  /* luminous primary pill */
+  --pill: #f4f6fa;
+  --pill-fg: #0a1220;
 
   /* status (real semantic state only) */
   --ok: #5fd4a1;
 
   /* texture */
-  --grid-line: rgba(39, 71, 65, 0.5);
+  --grid-line: rgba(30, 44, 71, 0.55);
 
-  /* shape */
-  --radius-control: 8px;
-  --radius-tile: 12px;
+  /* shape: pill controls, soft tiles */
+  --radius-control: 999px;
+  --radius-tile: 14px;
 
   /* motion */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -47,6 +55,10 @@
   --color-fg-muted: var(--fg-muted);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-gold-hi: var(--gold-hi);
+  --color-gold-lo: var(--gold-lo);
+  --color-pill: var(--pill);
+  --color-pill-fg: var(--pill-fg);
   --color-ok: var(--ok);
 
   --radius-control: var(--radius-control);

@@ -18,7 +18,8 @@ export function Footer() {
         </nav>
         <div className="text-[13px] text-fg-muted">
           <p>
-            (c) {year} {company.legalName}, Aotearoa New Zealand
+            A precision-engineering brand / (c) {year} {company.legalName},
+            Aotearoa New Zealand
           </p>
           {(company.nzbn || company.companyNumber) && (
             <p className="mt-1 font-mono text-[11px]">

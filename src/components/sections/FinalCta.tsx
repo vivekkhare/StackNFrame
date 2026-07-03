@@ -25,10 +25,10 @@ export function FinalCta() {
             <br />
             to{" "}
             <span className="relative whitespace-nowrap">
-              build.
+              <span className="text-gradient-gold">build.</span>
               <span
                 aria-hidden="true"
-                className="absolute inset-x-0 bottom-1.5 h-2.5 bg-accent opacity-30 blur-[7px]"
+                className="absolute inset-x-0 bottom-1.5 h-2.5 bg-gold-lo opacity-30 blur-[7px]"
               />
             </span>
           </h2>

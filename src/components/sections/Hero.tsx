@@ -1,10 +1,9 @@
-import { Container } from "@/components/ui/Container";
 import { HeroContent } from "./HeroContent";
 
 export function Hero() {
   return (
-    <Container>
+    <div className="mx-auto w-full max-w-[1500px]">
       <HeroContent />
-    </Container>
+    </div>
   );
 }

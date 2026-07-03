@@ -7,10 +7,12 @@ import {
   useTransform,
   useReducedMotion,
 } from "motion/react";
+import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
 import { MaskReveal } from "@/components/motion/MaskReveal";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { HeroSceneLazy } from "@/components/motion/HeroSceneLazy";
+import { CodePanels } from "@/components/motion/CodePanels";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 
@@ -36,45 +38,99 @@ function FadeIn({
   );
 }
 
+function Annotation({
+  label,
+  className,
+}: {
+  label: string;
+  className: string;
+}) {
+  return (
+    <p
+      className={`pointer-events-none absolute hidden items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-fg-muted xl:flex ${className}`}
+      aria-hidden="true"
+    >
+      <span className="inline-block h-px w-8 bg-hairline" />
+      {label}
+    </p>
+  );
+}
+
 export function HeroContent() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
 
-  // The 3D stage recedes as the user scrolls past the hero.
+  // Side visuals recede as the user scrolls past the hero.
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
   });
-  const stageY = useTransform(scrollYProgress, [0, 1], [0, 110]);
-  const stageScale = useTransform(scrollYProgress, [0, 1], [1, 0.88]);
-  const stageOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.25]);
-  const copyY = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const sideY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  const sideOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.15]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, 70]);
 
   return (
     <section
       ref={ref}
-      className="grid min-h-[calc(100dvh-64px)] items-center gap-12 py-12 md:py-16 lg:grid-cols-[1.2fr_1fr]"
+      className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center overflow-hidden py-16 text-center"
     >
-      <motion.div style={reduce ? undefined : { y: copyY }}>
+      {/* left: floating glass code panels */}
+      <motion.div
+        className="absolute left-0 top-[16%] hidden h-[420px] w-[300px] lg:block"
+        style={reduce ? undefined : { y: sideY, opacity: sideOpacity }}
+        initial={reduce ? false : { opacity: 0, x: -32 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 0.5, ease: EASE }}
+      >
+        <CodePanels className="h-full w-full" />
+      </motion.div>
+
+      {/* right: annotated wireframe structure */}
+      <motion.div
+        className="absolute right-[-40px] top-[10%] hidden h-[520px] w-[460px] lg:block"
+        style={reduce ? undefined : { y: sideY, opacity: sideOpacity }}
+        initial={reduce ? false : { opacity: 0, x: 32 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 0.6, ease: EASE }}
+      >
+        <div
+          className="absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
+          style={{
+            background:
+              "radial-gradient(circle, var(--glow) 0%, var(--glow-warm) 40%, transparent 68%)",
+          }}
+          aria-hidden="true"
+        />
+        <HeroSceneLazy />
+        <Annotation label="GRID AXIS A4" className="right-2 top-[18%]" />
+        <Annotation label="FLOOR 18" className="right-0 top-[46%]" />
+        <Annotation label="FLOOR 17" className="right-4 top-[64%]" />
+      </motion.div>
+
+      {/* center column */}
+      <motion.div
+        className="relative z-10 flex max-w-4xl flex-col items-center px-6"
+        style={reduce ? undefined : { y: copyY }}
+      >
         <FadeIn delay={0.05}>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-fg-muted">
-            Software publisher, Aotearoa NZ
+          <p className="rounded-full border border-hairline bg-panel px-4 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.2em] text-fg-muted">
+            Software publisher · Aotearoa NZ
           </p>
         </FadeIn>
-        <h1 className="mb-6 mt-5 font-display text-[clamp(52px,7.4vw,104px)] font-bold leading-[0.98] tracking-[-0.03em]">
-          <MaskReveal delay={0.12}>We build in</MaskReveal>
-          <MaskReveal delay={0.22}>
-            two <span className="text-outline">planes</span>
-            <span className="text-accent">.</span>
+        <h1 className="mt-7 font-display text-[clamp(40px,6.2vw,84px)] font-bold uppercase leading-[1.04] tracking-[-0.015em]">
+          <MaskReveal delay={0.15}>Software publishing</MaskReveal>
+          <MaskReveal delay={0.27}>
+            for <span className="text-gradient-gold">spatial innovation</span>
           </MaskReveal>
         </h1>
-        <FadeIn delay={0.5}>
-          <p className="max-w-[44ch] text-lg text-fg-muted">
-            Software products, AI systems and computationally designed spaces,
-            engineered with the same structural discipline.
+        <FadeIn delay={0.55}>
+          <p className="mt-6 max-w-[52ch] text-balance text-lg leading-relaxed text-fg-muted">
+            Stack &amp; Frame bridges code and architectural engineering:
+            software products, AI systems and precision tools for designing
+            real spaces.
           </p>
         </FadeIn>
-        <FadeIn delay={0.62} className="mt-8 flex flex-wrap gap-3.5">
+        <FadeIn delay={0.68} className="mt-9 flex flex-wrap justify-center gap-4">
           <Magnetic>
             <Button href="/contact">Start a project</Button>
           </Magnetic>
@@ -86,35 +142,16 @@ export function HeroContent() {
         </FadeIn>
       </motion.div>
 
-      <motion.div
-        className="relative order-first lg:order-none"
-        style={reduce ? undefined : { y: stageY, scale: stageScale, opacity: stageOpacity }}
-        initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
+      {/* scroll cue */}
+      <FadeIn
+        delay={1.1}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2"
       >
-        <div className="relative mx-auto h-[340px] max-w-[420px] md:h-[460px]">
-          <div
-            className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
-            style={{
-              background:
-                "radial-gradient(circle, var(--glow) 0%, transparent 65%)",
-            }}
-            aria-hidden="true"
-          />
-          <HeroSceneLazy />
-          <p className="absolute right-0 top-[12%] font-mono text-[10.5px] tracking-[0.08em] text-fg-muted">
-            <span
-              className="mr-2 inline-block h-[7px] w-[7px] rounded-[1px] border border-accent align-middle"
-              aria-hidden="true"
-            />
-            layer_04 :: <span className="text-accent">signed</span>
-          </p>
-          <p className="absolute bottom-[14%] left-0 font-mono text-[10.5px] tracking-[0.08em] text-fg-muted">
-            integrity <span className="text-accent">ok</span> · frame 1:50
-          </p>
-        </div>
-      </motion.div>
+        <p className="scroll-cue flex flex-col items-center gap-1 font-mono text-[10px] uppercase tracking-[0.24em] text-fg-muted">
+          Scroll
+          <CaretDown size={14} aria-hidden="true" />
+        </p>
+      </FadeIn>
     </section>
   );
 }
