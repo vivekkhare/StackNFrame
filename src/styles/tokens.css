@@ -1,0 +1,60 @@
+/*
+ * Blueprint Azure — design tokens for stacknframe.com
+ *
+ * Contrast contract: --fg on --bg and --accent-fg on --accent must stay >= 4.5:1;
+ * --fg-muted on --bg must stay >= 4.5:1 for body-size text.
+ */
+:root {
+  /* surfaces */
+  --bg: #0c1d33;
+  --surface: #12283f;
+  --panel: rgba(140, 190, 255, 0.045);
+  --border: #24466b;
+  --hairline: rgba(140, 190, 255, 0.14);
+
+  /* text */
+  --fg: #eaf2fb;
+  --fg-muted: #7fa0c4;
+
+  /* accent */
+  --accent: #5ca9ff;
+  --accent-fg: #071526;
+  --glow: rgba(92, 169, 255, 0.1);
+
+  /* status (real semantic state only) */
+  --ok: #4ade80;
+
+  /* texture */
+  --grid-line: rgba(36, 70, 107, 0.42);
+
+  /* shape */
+  --radius-control: 8px;
+  --radius-tile: 12px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-ok: var(--ok);
+
+  --radius-control: var(--radius-control);
+  --radius-tile: var(--radius-tile);
+
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
