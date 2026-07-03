@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { TextReveal } from "@/components/motion/TextReveal";
 
 export function FinalCta() {
   return (
@@ -19,20 +20,14 @@ export function FinalCta() {
         }}
       />
       <Container className="relative">
-        <Reveal index={0}>
-          <h2 className="font-display text-[clamp(44px,6vw,84px)] font-bold leading-[1.02] tracking-[-0.03em]">
-            Tell us what
-            <br />
-            to{" "}
-            <span className="relative whitespace-nowrap">
-              <span className="text-gradient-gold">build.</span>
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-1.5 h-2.5 bg-gold-lo opacity-30 blur-[7px]"
-              />
-            </span>
-          </h2>
-        </Reveal>
+        <h2 className="max-w-[12ch] font-display text-[clamp(44px,6vw,84px)] font-bold leading-[1.02] tracking-[-0.03em]">
+          <TextReveal
+            segments={[
+              { text: "Tell us what to" },
+              { text: "build.", className: "text-gradient-gold" },
+            ]}
+          />
+        </h2>
         <Reveal index={1}>
           <Magnetic className="mt-10">
             <Button href="/contact">Start a project</Button>

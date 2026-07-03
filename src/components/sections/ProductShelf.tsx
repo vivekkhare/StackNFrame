@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/motion/Reveal";
+import { TextReveal } from "@/components/motion/TextReveal";
 import { ProductTile } from "@/components/ui/ProductTile";
 import { featuredProducts, products } from "@/content/products";
 
@@ -10,11 +11,9 @@ export function ProductShelf() {
   return (
     <section className="py-24 md:py-32">
       <Container>
-        <Reveal index={0}>
-          <h2 className="font-display text-[clamp(34px,4vw,52px)] font-bold leading-[1.05] tracking-[-0.02em] text-balance">
-            Software we publish.
-          </h2>
-        </Reveal>
+        <h2 className="font-display text-[clamp(34px,4vw,52px)] font-bold leading-[1.05] tracking-[-0.02em]">
+          <TextReveal segments={[{ text: "Software we publish." }]} />
+        </h2>
         <Reveal index={1} as="p">
           <span className="mt-4 block max-w-[52ch] text-[17px] text-fg-muted">
             {products.length} products across AI, commerce, operations and

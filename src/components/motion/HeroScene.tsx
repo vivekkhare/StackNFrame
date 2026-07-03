@@ -7,6 +7,17 @@ import { HeroFallback } from "./HeroFallback";
 
 const BLUE = 0x7fb0f2;
 const GOLD = 0xe8d5b0;
+const FOG = 0x060b16;
+
+const W = 1.5;
+const D = 1.15;
+const FLOORS = [-1.15, -0.35, 0.45, 1.25];
+const CORNERS: [number, number][] = [
+  [-W, -D],
+  [W, -D],
+  [W, D],
+  [-W, D],
+];
 
 function supportsWebGL(): boolean {
   try {
@@ -20,94 +31,34 @@ function supportsWebGL(): boolean {
   }
 }
 
-/** Wireframe tower: floor plates + columns + glowing corner nodes, per the reference art. */
-function buildTower(group: THREE.Group) {
-  const w = 1.5;
-  const d = 1.15;
-  const floors = [-1.15, -0.35, 0.45, 1.25];
+const easeOutCubic = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
 
-  const linePts: number[] = [];
-  const push = (
-    a: [number, number, number],
-    b: [number, number, number],
-  ) => linePts.push(...a, ...b);
+/** Soft radial glow texture for node sprites (fake bloom, no postprocessing). */
+function makeGlowTexture(): THREE.Texture {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,1)");
+  grad.addColorStop(0.25, "rgba(255,255,255,0.6)");
+  grad.addColorStop(0.6, "rgba(255,255,255,0.12)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
 
-  // floor plate outlines
-  for (const y of floors) {
-    push([-w, y, -d], [w, y, -d]);
-    push([w, y, -d], [w, y, d]);
-    push([w, y, d], [-w, y, d]);
-    push([-w, y, d], [-w, y, -d]);
-    // cross beams
-    push([-w, y, 0], [w, y, 0]);
-  }
-  // corner + mid columns
-  const yBot = floors[0];
-  const yTop = floors[floors.length - 1];
-  for (const [cx, cz] of [
-    [-w, -d],
-    [w, -d],
-    [w, d],
-    [-w, d],
-    [0, -d],
-    [0, d],
-  ] as const) {
-    push([cx, yBot, cz], [cx, yTop, cz]);
-  }
-
-  const lineGeo = new THREE.BufferGeometry();
-  lineGeo.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(linePts, 3),
+function lineSegments(pts: number[], color: number, opacity: number) {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  return new THREE.LineSegments(
+    geo,
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity }),
   );
-  const lines = new THREE.LineSegments(
-    lineGeo,
-    new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0.5 }),
-  );
-  group.add(lines);
-
-  // glowing nodes at structural intersections
-  const bluePts: number[] = [];
-  const goldPts: number[] = [];
-  floors.forEach((y, fi) => {
-    for (const [cx, cz] of [
-      [-w, -d],
-      [w, -d],
-      [w, d],
-      [-w, d],
-    ] as const) {
-      // warm the top floor's near corners (the reference's champagne glow)
-      if (fi === floors.length - 1 && cx > 0) goldPts.push(cx, y, cz);
-      else bluePts.push(cx, y, cz);
-    }
-  });
-
-  const mkPoints = (pts: number[], color: number, size: number) => {
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-    return new THREE.Points(
-      geo,
-      new THREE.PointsMaterial({
-        color,
-        size,
-        transparent: true,
-        opacity: 0.95,
-        sizeAttenuation: false,
-      }),
-    );
-  };
-  const blueNodes = mkPoints(bluePts, BLUE, 4);
-  const goldNodes = mkPoints(goldPts, GOLD, 6);
-  group.add(blueNodes, goldNodes);
-
-  // faint blueprint ground grid
-  const grid = new THREE.GridHelper(6, 12, BLUE, BLUE);
-  (grid.material as THREE.Material).transparent = true;
-  (grid.material as THREE.Material).opacity = 0.08;
-  grid.position.y = yBot - 0.02;
-  group.add(grid);
-
-  return { blueNodes, goldNodes };
 }
 
 export default function HeroScene() {
@@ -125,14 +76,13 @@ export default function HeroScene() {
     if (!mount) return;
 
     const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(FOG, 6.5, 12);
     const camera = new THREE.PerspectiveCamera(
       40,
       mount.clientWidth / mount.clientHeight,
       0.1,
       100,
     );
-    camera.position.set(5.2, 3.4, 5.2);
-    camera.lookAt(0, 0.1, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -141,9 +91,105 @@ export default function HeroScene() {
 
     const group = new THREE.Group();
     scene.add(group);
-    const { blueNodes, goldNodes } = buildTower(group);
 
-    // pointer parallax: the structure leans gently toward the cursor
+    /* ---- structure, split into pieces so it can assemble in sequence ---- */
+
+    // floor plates (each its own group so it can drop-settle independently)
+    const floorGroups: THREE.Group[] = FLOORS.map((y) => {
+      const pts: number[] = [];
+      const ring = [
+        [-W, -D],
+        [W, -D],
+        [W, D],
+        [-W, D],
+      ];
+      for (let i = 0; i < 4; i++) {
+        const [ax, az] = ring[i];
+        const [bx, bz] = ring[(i + 1) % 4];
+        pts.push(ax, y, az, bx, y, bz);
+      }
+      pts.push(-W, y, 0, W, y, 0); // cross beam
+      const fg = new THREE.Group();
+      fg.add(lineSegments(pts, BLUE, 0.5));
+      group.add(fg);
+      return fg;
+    });
+
+    // columns (scaleY draws them upward after the floors land)
+    const colPts: number[] = [];
+    const yBot = FLOORS[0];
+    const yTop = FLOORS[FLOORS.length - 1];
+    for (const [cx, cz] of [...CORNERS, [0, -D], [0, D]] as [number, number][]) {
+      colPts.push(cx, yBot, cz, cx, yTop, cz);
+    }
+    const columns = lineSegments(colPts, BLUE, 0.45);
+    columns.position.y = yBot;
+    columns.geometry.translate(0, -yBot, 0);
+    group.add(columns);
+
+    // glowing node sprites at intersections (additive = bloom look)
+    const glowTex = makeGlowTexture();
+    const sprites: { sprite: THREE.Sprite; base: number; phase: number }[] = [];
+    FLOORS.forEach((y, fi) => {
+      CORNERS.forEach(([cx, cz], ci) => {
+        const isGold = fi === FLOORS.length - 1 && cx > 0;
+        const mat = new THREE.SpriteMaterial({
+          map: glowTex,
+          color: isGold ? GOLD : BLUE,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const sprite = new THREE.Sprite(mat);
+        sprite.position.set(cx, y, cz);
+        const scale = isGold ? 0.55 : 0.32;
+        sprite.scale.setScalar(scale);
+        group.add(sprite);
+        sprites.push({
+          sprite,
+          base: isGold ? 0.9 : 0.55,
+          phase: fi * 1.3 + ci * 0.7,
+        });
+      });
+    });
+
+    // data pulses: points of light traveling up the corner columns
+    const pulses: {
+      sprite: THREE.Sprite;
+      corner: [number, number];
+      speed: number;
+      offset: number;
+    }[] = [];
+    for (let i = 0; i < 5; i++) {
+      const mat = new THREE.SpriteMaterial({
+        map: glowTex,
+        color: i % 3 === 0 ? GOLD : BLUE,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.setScalar(0.14);
+      group.add(sprite);
+      pulses.push({
+        sprite,
+        corner: CORNERS[i % 4],
+        speed: 0.14 + (i % 3) * 0.05,
+        offset: i * 0.23,
+      });
+    }
+
+    // faint blueprint ground grid
+    const grid = new THREE.GridHelper(6, 12, BLUE, BLUE);
+    (grid.material as THREE.Material).transparent = true;
+    (grid.material as THREE.Material).opacity = 0;
+    grid.position.y = yBot - 0.02;
+    group.add(grid);
+
+    /* ---- interaction + animation ---- */
+
     let targetTiltX = 0;
     let targetTiltZ = 0;
     let tiltX = 0;
@@ -158,27 +204,65 @@ export default function HeroScene() {
     let raf = 0;
     let running = false;
     const start = performance.now();
+
     const animate = () => {
       if (!running) return;
       raf = requestAnimationFrame(animate);
       const t = (performance.now() - start) / 1000;
 
-      group.rotation.y = t * 0.16;
+      /* construction sequence (first ~2.6s) */
+      floorGroups.forEach((fg, i) => {
+        const p = easeOutCubic((t - 0.15 - i * 0.22) / 0.7);
+        fg.position.y = (1 - p) * 0.5;
+        fg.scale.setScalar(0.86 + p * 0.14);
+        const mat = (fg.children[0] as THREE.LineSegments)
+          .material as THREE.LineBasicMaterial;
+        mat.opacity = p * 0.5;
+      });
+      const colP = easeOutCubic((t - 1.1) / 0.9);
+      columns.scale.y = Math.max(0.001, colP);
+      (columns.material as THREE.LineBasicMaterial).opacity = colP * 0.45;
+      (grid.material as THREE.Material as THREE.LineBasicMaterial).opacity =
+        easeOutCubic((t - 1.6) / 1) * 0.08;
+
+      /* nodes ignite after their floor lands, then breathe */
+      sprites.forEach(({ sprite, base, phase }, i) => {
+        const ignite = easeOutCubic((t - 0.6 - Math.floor(i / 4) * 0.22) / 0.5);
+        (sprite.material as THREE.SpriteMaterial).opacity =
+          ignite * (base * (0.75 + Math.sin(t * 1.4 + phase) * 0.25));
+      });
+
+      /* pulses ride the columns once the structure stands */
+      const pulseGate = easeOutCubic((t - 2.2) / 0.8);
+      pulses.forEach(({ sprite, corner, speed, offset }) => {
+        const cycle = (t * speed + offset) % 1;
+        sprite.position.set(
+          corner[0],
+          yBot + cycle * (yTop - yBot),
+          corner[1],
+        );
+        const fade = Math.sin(cycle * Math.PI);
+        (sprite.material as THREE.SpriteMaterial).opacity =
+          pulseGate * fade * 0.85;
+      });
+
+      /* motion: slow rotation, pointer lean, breathing camera */
+      group.rotation.y = t * 0.14;
       tiltX += (targetTiltX - tiltX) * 0.04;
       tiltZ += (targetTiltZ - tiltZ) * 0.04;
       group.rotation.x = tiltX;
       group.rotation.z = tiltZ;
 
-      // nodes breathe softly, offset from each other
-      (blueNodes.material as THREE.PointsMaterial).opacity =
-        0.65 + Math.sin(t * 1.6) * 0.3;
-      (goldNodes.material as THREE.PointsMaterial).opacity =
-        0.7 + Math.sin(t * 1.1 + 1.4) * 0.3;
+      camera.position.set(
+        5.2 + Math.sin(t * 0.18) * 0.18,
+        3.4 + Math.sin(t * 0.14 + 1) * 0.14,
+        5.2 + Math.cos(t * 0.18) * 0.18,
+      );
+      camera.lookAt(0, 0.1, 0);
 
       renderer.render(scene, camera);
     };
 
-    // Render only while visible; saves battery and main-thread time.
     const setRunning = (next: boolean) => {
       if (next === running) return;
       running = next;
@@ -215,13 +299,15 @@ export default function HeroScene() {
       window.removeEventListener("pointermove", onPointerMove);
       ro.disconnect();
       renderer.dispose();
+      glowTex.dispose();
       scene.traverse((obj) => {
         if (
           obj instanceof THREE.Mesh ||
           obj instanceof THREE.LineSegments ||
+          obj instanceof THREE.Sprite ||
           obj instanceof THREE.Points
         ) {
-          obj.geometry.dispose();
+          if ("geometry" in obj) obj.geometry?.dispose();
           (obj.material as THREE.Material).dispose();
         }
       });

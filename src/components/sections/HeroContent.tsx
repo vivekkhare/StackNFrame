@@ -74,6 +74,10 @@ export function HeroContent() {
       ref={ref}
       className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center overflow-hidden py-16 text-center"
     >
+      {/* aurora depth */}
+      <div className="aurora-blue" aria-hidden="true" />
+      <div className="aurora-gold" aria-hidden="true" />
+
       {/* left: floating glass code panels */}
       <motion.div
         className="absolute left-0 top-[16%] hidden h-[420px] w-[300px] lg:block"
