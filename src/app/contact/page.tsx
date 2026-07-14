@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { buildPageMetadata } from "@/lib/metadata";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { Container } from "@/components/ui/Container";
@@ -23,9 +22,7 @@ export default function ContactPage() {
       />
       <Container>
         <div className="grid gap-14 pb-24 lg:grid-cols-[2fr_1fr]">
-          <Suspense fallback={null}>
-            <ContactForm />
-          </Suspense>
+          <ContactForm />
           <aside className="text-[15px] leading-relaxed text-fg-muted">
             <h2 className="font-display text-[17px] font-bold text-fg">
               Prefer email?

@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -70,15 +69,31 @@ function Field({
 }
 
 export function ContactForm() {
-  const params = useSearchParams();
-  const productParam = params.get("product");
-  const preselected = products.find((p) => p.slug === productParam);
-
-  const [mode, setMode] = useState<Mode>(preselected ? "product" : "build");
+  // The query param is read after mount (not via useSearchParams) so the form
+  // itself is always present in the server-rendered HTML — a contact page
+  // must never depend on hydration to show its form.
+  const [mode, setMode] = useState<Mode>("build");
+  const [preselected, setPreselected] = useState<
+    (typeof products)[number] | undefined
+  >(undefined);
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    // One-time sync FROM the URL (an external system) into state. Reading it
+    // during render would break SSR / cause a hydration mismatch on deep
+    // links, so the once-on-mount effect is the correct place despite the
+    // cascading-render heuristic.
+    const slug = new URLSearchParams(window.location.search).get("product");
+    const match = products.find((p) => p.slug === slug);
+    if (match) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreselected(match);
+      setMode("product");
+    }
+  }, []);
 
   function validate(data: FormData): Record<string, string> {
     const next: Record<string, string> = {};
@@ -285,6 +300,7 @@ export function ContactForm() {
                   </Field>
                   <Field label="Product">
                     <select
+                      key={preselected?.slug ?? "none"}
                       name="product"
                       defaultValue={preselected?.name}
                       className={inputCls}
