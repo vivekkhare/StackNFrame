@@ -1,64 +1,28 @@
 import Link from "next/link";
 
-/** Boxed S&F mark from the reference: outlined frame, S top-left, & center, F bottom-right. */
-export function LogoMark({ size = 34 }: { size?: number }) {
+/**
+ * The Shipment mark: a frame that opens at the top-right corner so the gold
+ * layer can ship out of it. Structure exists to release product, not contain
+ * it. Bars use site tokens so the mark follows the theme automatically.
+ */
+export function LogoMark({ size = 30 }: { size?: number }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 36 36"
+      viewBox="0 0 64 64"
       fill="none"
       aria-hidden="true"
     >
-      <rect
-        x="1.5"
-        y="1.5"
-        width="33"
-        height="33"
-        rx="2"
-        stroke="var(--hairline)"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="5"
-        y="5"
-        width="26"
-        height="26"
-        rx="1"
+      <path
+        d="M46 5 H12 A7 7 0 0 0 5 12 V52 A7 7 0 0 0 12 59 H52 A7 7 0 0 0 59 52 V28"
         stroke="var(--accent)"
-        strokeWidth="1"
-        opacity="0.65"
+        strokeWidth="3.4"
+        strokeLinecap="round"
       />
-      <text
-        x="9"
-        y="16"
-        fill="var(--fg)"
-        fontSize="10"
-        fontFamily="var(--font-space-grotesk), sans-serif"
-        fontWeight="700"
-      >
-        S
-      </text>
-      <text
-        x="14.5"
-        y="22.5"
-        fill="var(--gold-lo)"
-        fontSize="9"
-        fontFamily="var(--font-space-grotesk), sans-serif"
-        fontWeight="700"
-      >
-        &amp;
-      </text>
-      <text
-        x="21"
-        y="29"
-        fill="var(--fg)"
-        fontSize="10"
-        fontFamily="var(--font-space-grotesk), sans-serif"
-        fontWeight="700"
-      >
-        F
-      </text>
+      <rect x="17" y="40" width="30" height="7" rx="2" fill="var(--fg)" opacity="0.42" />
+      <rect x="17" y="28.5" width="30" height="7" rx="2" fill="var(--fg)" opacity="0.78" />
+      <rect x="24" y="14" width="36" height="7" rx="2" fill="var(--gold-lo)" />
     </svg>
   );
 }
