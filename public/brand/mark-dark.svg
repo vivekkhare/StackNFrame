@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64" fill="none">
+  <!-- Stack & Frame — the Shipment mark, for DARK backgrounds (the website,
+       dark decks). Solid colors only, no opacity. -->
+  <path d="M46 5 H12 A7 7 0 0 0 5 12 V52 A7 7 0 0 0 12 59 H52 A7 7 0 0 0 59 52 V28" stroke="#7FB0F2" stroke-width="3" stroke-linecap="round"/>
+  <rect x="17" y="40" width="30" height="7" rx="2" fill="#8B97AB"/>
+  <rect x="17" y="28.5" width="30" height="7" rx="2" fill="#E8EDF5"/>
+  <rect x="24" y="14" width="36" height="7" rx="2" fill="#D5B885"/>
+</svg>

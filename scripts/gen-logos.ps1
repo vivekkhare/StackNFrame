@@ -1,3 +1,7 @@
+# Regenerates the Stack & Frame logo raster kit into public/brand/png.
+# Light backgrounds are the primary case, so mark-{size}.png is the
+# light-optimized version; mark-dark-{size}.png is for dark surfaces.
+# All colors are solid (no alpha) so marks render identically anywhere.
 Add-Type -AssemblyName System.Drawing
 
 function Add-BarRect {
@@ -16,19 +20,21 @@ function Add-BarRect {
 }
 
 function Draw-Mark {
-  param([int]$size, [bool]$light, [string]$bgHex, [string]$outFile)
+  param([int]$size, [bool]$dark, [string]$bgHex, [string]$outFile)
   $bmp = New-Object System.Drawing.Bitmap($size, $size)
   $g = [System.Drawing.Graphics]::FromImage($bmp)
   $g.SmoothingMode = 'AntiAlias'
 
-  if ($light) {
-    $frameC = [System.Drawing.Color]::FromArgb(43, 101, 184)
-    $barC   = [System.Drawing.Color]::FromArgb(10, 18, 32)
-    $goldC  = [System.Drawing.Color]::FromArgb(176, 141, 79)
+  if ($dark) {
+    $frameC   = [System.Drawing.Color]::FromArgb(127, 176, 242)
+    $barSoftC = [System.Drawing.Color]::FromArgb(139, 151, 171)
+    $barMainC = [System.Drawing.Color]::FromArgb(232, 237, 245)
+    $goldC    = [System.Drawing.Color]::FromArgb(213, 184, 133)
   } else {
-    $frameC = [System.Drawing.Color]::FromArgb(127, 176, 242)
-    $barC   = [System.Drawing.Color]::FromArgb(242, 245, 250)
-    $goldC  = [System.Drawing.Color]::FromArgb(213, 184, 133)
+    $frameC   = [System.Drawing.Color]::FromArgb(46, 99, 184)
+    $barSoftC = [System.Drawing.Color]::FromArgb(122, 135, 156)
+    $barMainC = [System.Drawing.Color]::FromArgb(22, 35, 58)
+    $goldC    = [System.Drawing.Color]::FromArgb(176, 141, 79)
   }
 
   if ($bgHex) {
@@ -68,17 +74,17 @@ function Draw-Mark {
   $path.AddLine([single]$R, [single]($B - $cr * $s), [single]$R, [single]($oy + $rightStop * $s))
   $g.DrawPath($pen, $path)
 
-  $bar42 = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(107, $barC.R, $barC.G, $barC.B))
-  $bar78 = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(199, $barC.R, $barC.G, $barC.B))
+  $softBrush = New-Object System.Drawing.SolidBrush($barSoftC)
+  $mainBrush = New-Object System.Drawing.SolidBrush($barMainC)
   $goldBrush = New-Object System.Drawing.SolidBrush($goldC)
 
   if ($small) {
-    Add-BarRect $g $s $ox $oy 19 38 24 7 $bar78
-    Add-BarRect $g $s $ox $oy 19 27.5 24 7 $bar78
+    Add-BarRect $g $s $ox $oy 19 38 24 7 $mainBrush
+    Add-BarRect $g $s $ox $oy 19 27.5 24 7 $mainBrush
     Add-BarRect $g $s $ox $oy 25 17 31 8 $goldBrush
   } else {
-    Add-BarRect $g $s $ox $oy 17 40 30 7 $bar42
-    Add-BarRect $g $s $ox $oy 17 28.5 30 7 $bar78
+    Add-BarRect $g $s $ox $oy 17 40 30 7 $softBrush
+    Add-BarRect $g $s $ox $oy 17 28.5 30 7 $mainBrush
     Add-BarRect $g $s $ox $oy 24 14 36 7 $goldBrush
   }
 
@@ -89,7 +95,10 @@ function Draw-Mark {
 
 $out = "public\brand\png"
 New-Item -ItemType Directory -Force $out | Out-Null
+# default = light backgrounds (the common case: documents, invoices, print)
 foreach ($sz in 16, 32, 48, 64, 128, 256, 512, 1024) { Draw-Mark $sz $false $null "$out\mark-$sz.png" }
-foreach ($sz in 64, 128, 256, 512, 1024) { Draw-Mark $sz $true $null "$out\mark-on-light-$sz.png" }
-foreach ($sz in 256, 512, 1024) { Draw-Mark $sz $false '#060B16' "$out\avatar-$sz.png" }
+# dark-background variant (website-style surfaces)
+foreach ($sz in 64, 128, 256, 512, 1024) { Draw-Mark $sz $true $null "$out\mark-dark-$sz.png" }
+# social avatars: dark mark on navy plate (self-contained, works anywhere)
+foreach ($sz in 256, 512, 1024) { Draw-Mark $sz $true '#060B16' "$out\avatar-$sz.png" }
 Write-Output "generated $((Get-ChildItem $out).Count) files"
